@@ -4,4 +4,5 @@
 ->npm install mongodb  
 ->npm install dotenv  
 ->npm install --save nodemon  
+->npm install express-fileupload  
 
