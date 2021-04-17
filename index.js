@@ -62,6 +62,14 @@ app.get('/reviews', (req, res) => {
         })
 });
 
+app.get('/getService',(req, res)=>{
+    //console.log(req.query.email)
+    appointmentCollection.find({email: req.query.email})
+    .toArray((err, serviceData) => {
+        res.send(serviceData);
+    })
+})
+
 
 
 app.post('/addReview', (req, res)=>{
