@@ -6,3 +6,9 @@
 ->npm install --save nodemon  
 ->npm install express-fileupload  
 
+
+#Heroku  
+->heroku login  
+->heroku create  
+->git push heroku master or main  
+->
