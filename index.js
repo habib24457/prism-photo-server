@@ -3,10 +3,17 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 const MongoClient = require('mongodb').MongoClient;
+const mongoose = require("mongoose");
+const ObjectId = require('mongodb').ObjectID;
+
 require('dotenv').config()
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.usac8.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+//const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.usac8.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 
+//ZtqxFoTg40LTWdhL
+//npx nodemon index.js
+
+const uri = "mongodb+srv://habib99:z5BytpV589hSY0C3@cluster0.lkh1t2a.mongodb.net/?retryWrites=true&w=majority";
 
 const app=express();
 app.use(bodyParser.json());
@@ -16,17 +23,31 @@ app.use(fileUpload());
 
 const port =5000;
 
+
+// mongoose.connect(uri,{
+//     useNewUrlParser:true,useUnifiedTopology: true
+// }).then(()=>{
+//     console.log("Connection Successfull");
+
+// }).catch((e)=>{
+//     console.log("Not Connected",e);
+// })
+
+
 app.get('/',(req, res)=>{
     res.send("Working...");
 })
 
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, });
 client.connect(err => {
   const appointmentCollection = client.db("prismPhotography").collection("appointments");
   const adminCollection = client.db("prismPhotography").collection("admins");
   const reviewCollection = client.db("prismPhotography").collection("reviews");
-  console.log("Connect");
+  console.log("Connected to MongoDB");
+  //console.log("Error",err);
 
+  
   app.post('/addAppointment',(req, res)=>{
       const appointment = req.body;
       appointmentCollection.insertOne(appointment)
@@ -34,6 +55,73 @@ client.connect(err => {
           res.send(result.insertedCount>0);
       })
   });
+
+  app.put('/updateAppointment/:id',(req,res)=>{
+    const updatedData = req.body;
+    //const id = req.params.id;
+    const id = req.body._id;
+    //console.log(id);
+    const query = {_id:ObjectId(id)};
+
+    const options = {upsert:true};
+
+    //console.log(query);
+
+    const updateDoc = {
+        $set:{
+            name:updatedData.name,
+            phone:updatedData.phone,
+            email:updatedData.email,
+            gender:updatedData.gender,
+            age:updatedData.age,
+            service:updatedData.service,
+            date:updatedData.date,
+            price:updatedData.price
+        }
+
+    }
+
+    //console.log(updateDoc);
+
+     const result = appointmentCollection.updateOne(query,updateDoc,options);
+     res.send(result);
+
+
+    // const item ={
+    //     name:req.body.name,
+    //     phone:req.body.phone,
+    //     email:req.body.email,
+    //     gender:req.body.gender,
+    //     age:req.body.age,
+    //     service:req.body.service,
+    //     date:req.body.date,
+    //     price:req.body.price
+    // }
+
+    // appointmentCollection.updateOne({"_id":ObjectId(id)},{$set:item},(err,result)=>{
+    //     res.send(result);
+    //     console.log(result);
+    // })
+    //console.log(updatedData,id);
+  })
+
+  app.delete('/deleteAppointment/:id',(req,res)=>{
+    const id = req.params.id;
+    console.log(id);
+    const query = {_id:ObjectId(id)};
+    console.log(query);
+    const result = appointmentCollection.deleteOne(query);
+    res.send(result);
+  })
+
+  app.get('/appointments',(req,res)=>{
+    appointmentCollection.find().toArray((err,appointments)=>{
+        res.send(appointments);
+    })
+  });
+
+  
+
 
   app.post('/appointmentsByDate',(req, res)=>{
     const date = req.body;
@@ -99,8 +187,11 @@ adminCollection.insertOne({ name, email, image })
 })
 
 })
-
   
 });
+
+
+
+
 
 app.listen(process.env.PORT ||port)
